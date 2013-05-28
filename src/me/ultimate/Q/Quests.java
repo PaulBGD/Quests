@@ -23,10 +23,13 @@ public class Quests extends JavaPlugin implements Listener {
 
     private final ArrayList<String> Confirm = new ArrayList<String>();
     HashMap<String, Long> timer = new HashMap<String, Long>();
+    HashMap<String, String> Creators = new HashMap<String, String>();
+    HashMap<String, String> QuestInfo = new HashMap<String, String>();
 
-    public HashMap<String, Long> getTimer(){
+    public HashMap<String, Long> getTimer() {
         return this.timer;
     }
+
     @Override
     public void onEnable() {
         final File file = new File(getDataFolder() + File.separator + "config.yml");
@@ -61,6 +64,7 @@ public class Quests extends JavaPlugin implements Listener {
         if (sender instanceof Player) {
             final Player p = ((Player) sender);
             if (cmd.getName().equalsIgnoreCase("quests")) {
+
                 if (args.length > 0) {
                     if (args[0].equals("reload")) {
                         p.sendMessage(msg("Reloaded Config"));
@@ -84,6 +88,11 @@ public class Quests extends JavaPlugin implements Listener {
                         final List<String> list = new ArrayList<>();
                         list.add("Completed Quests Below");
                         getConfig().set(p.getName() + ".Completed", list);
+                    } else if (args[0].equalsIgnoreCase("create")) {
+                        if (p.hasPermission("quests.create")) {
+                            Creators.put(p.getName(), "1");
+                            p.sendMessage(cct("&8[&bQuests&8]&7 Welcome to the quest creator! Type in what you want to be the name of the quest. Use underscores as spaces."));
+                        }
                     }
                 }
             } else if (cmd.getName().equalsIgnoreCase("quest")) {
@@ -128,7 +137,7 @@ public class Quests extends JavaPlugin implements Listener {
         return true;
     }
 
-    public static String cct(final String msg) {
+    public String cct(final String msg) {
         return ChatColor.translateAlternateColorCodes('&', "&7" + msg);
     }
 
@@ -151,7 +160,6 @@ public class Quests extends JavaPlugin implements Listener {
         final int a = getConfig().getInt(qn + ".Amount");
         final ItemStack item = new ItemStack(id, a, (short) data);
         p.getInventory().addItem(item);
-        inv.update(p);
         p.sendMessage(msg("You completed the " + qn.replaceAll("_", " ") + " quest, for the reward of " + a + " "
                 + Material.getMaterial(id).name() + "."));
         if (getConfig().isSet(p.getName() + ".Completed")) {
@@ -241,7 +249,6 @@ public class Quests extends JavaPlugin implements Listener {
                 }
                 if (p.getInventory().contains(new ItemStack(Material.getMaterial(id), amount, (short) data))) {
                     p.getInventory().remove(new ItemStack(Material.getMaterial(id), amount, (short) data));
-                    inv.update(p);
                     finishQuest(p);
                 }
             }
@@ -252,13 +259,12 @@ public class Quests extends JavaPlugin implements Listener {
     }
 
     public void traitCounter(final String name, final Player p) {
-        if(!timer.containsKey(p.getName())){
+        if (!timer.containsKey(p.getName())) {
             Long eventoccured = new Date().getTime();
             timer.put(p.getName(), eventoccured);
         } else {
             Long lapse = new Date().getTime() - timer.get(p.getName());
-            if( lapse >= 500 )
-            {
+            if (lapse >= 200) {
                 Long eventoccured = new Date().getTime();
                 timer.put(p.getName(), eventoccured);
                 questStarter(name, p);

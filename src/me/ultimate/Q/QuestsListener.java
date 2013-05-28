@@ -4,12 +4,15 @@ import java.util.HashMap;
 
 import me.ThaH3lper.com.Api.BossDeathEvent;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 public class QuestsListener implements Listener {
     private final Quests Quests;
@@ -26,8 +29,8 @@ public class QuestsListener implements Listener {
             Quests.getConfig().set(p.getName() + ".Quest", "none");
         }
         Quests.saveConfig();
-        HashMap<String, Long> timer = Quests.getTimer();
-        if(timer.containsKey(p.getName()))
+        final HashMap<String, Long> timer = Quests.getTimer();
+        if (timer.containsKey(p.getName()))
             timer.remove(p.getName());
     }
 
@@ -111,4 +114,40 @@ public class QuestsListener implements Listener {
 
     }
 
+    @EventHandler
+    public void onPlayerLeave(final PlayerQuitEvent event) {
+        if (Quests.Creators.containsKey(event.getPlayer().getName()))
+            Quests.Creators.remove(event.getPlayer().getName());
+    }
+
+    @EventHandler
+    public void onPlayerChat(final AsyncPlayerChatEvent event) {
+        final String msg = event.getMessage();
+        final Player p = event.getPlayer();
+        if (Quests.Creators.containsKey(p.getName())) {
+            if (Quests.Creators.get(p.getName()) == "1") {
+                if (msg.length() == 1) {
+                    Quests.QuestInfo.put(p.getName() + ".Name", msg);
+                    p.sendMessage(cct("The name of the quest is: " + Quests.QuestInfo.get(p.getName() + ".Name")));
+                    p.sendMessage(cct("Enter in the type of the quest. The types are: Location. Delivery. Mobkill. EpicBoss. More coming soon."));
+                    Quests.Creators.put(p.getName(), "2");
+                }
+            } else if (Quests.Creators.get(p.getName()) == "2") {
+                if (msg.length() == 1) {
+                    if (msg.equalsIgnoreCase("Location") || msg.equalsIgnoreCase("Delivery")
+                            || msg.equalsIgnoreCase("Mobkill") || msg.equalsIgnoreCase("EpicBoss")) {
+                        Quests.QuestInfo.put(p.getName() + ".Type", msg);
+                        p.sendMessage(cct("You set the quest type to: " + Quests.QuestInfo.get(p.getName() + ".Type")));
+                        Quests.Creators.put(p.getName(), "3");
+                    } else {
+                        p.sendMessage(cct("The quest type " + msg + " is not valid type!"));
+                    }
+                }
+            }
+        }
+    }
+
+    String cct(final String msg) {
+        return ChatColor.translateAlternateColorCodes('&', "&8[&bQuests&8]&7 ");
+    }
 }
