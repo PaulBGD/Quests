@@ -2,8 +2,6 @@ package main.java.me.ultimate.Q;
 
 import java.util.HashMap;
 
-import me.ThaH3lper.com.Api.BossDeathEvent;
-
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -32,18 +30,6 @@ public class QuestsListener implements Listener {
         final HashMap<String, Long> timer = Quests.getTimer();
         if (timer.containsKey(p.getName()))
             timer.remove(p.getName());
-    }
-
-    @EventHandler
-    public void onBossDeath(final BossDeathEvent event) {
-        final Player p = event.getPlayer();
-        if (Quests.getConfig().getString(Quests.getConfig().getString(p.getName() + ".Quest") + ".Type")
-                .equalsIgnoreCase("EpicBoss")) {
-            if (event.getBossName().equalsIgnoreCase(
-                    Quests.getConfig().getString(Quests.getConfig().getString(p.getName() + ".Quest") + ".BossName"))) {
-                Quests.finishQuest(p);
-            }
-        }
     }
 
     @EventHandler
@@ -86,7 +72,7 @@ public class QuestsListener implements Listener {
     }
 
     @EventHandler
-    public void onEntityDeath(final EntityDeathEvent event) {
+    public void onEntityDeath(EntityDeathEvent event) {
         if (event.getEntity().getKiller() instanceof Player) {
             final Player p = event.getEntity().getKiller();
             if (!Quests.getConfig().getString(p.getName()).equalsIgnoreCase("none")
@@ -94,13 +80,13 @@ public class QuestsListener implements Listener {
                 if (Quests.getConfig().getString(Quests.getConfig().getString(p.getName() + ".Quest") + ".Type")
                         .equalsIgnoreCase("mobkill")) {
                     if (Quests.getConfig().getString(Quests.getConfig().getString(p.getName() + ".Quest") + ".Mob")
-                            .equalsIgnoreCase(event.getEntityType().getName().toString())) {
-                        if (Quests.getConfig().isSet(p.getName() + ".Kills")) {
+                            .equalsIgnoreCase(event.getEntityType().getName())) {
+                        if (Quests.getConfig().getInt(p.getName() + ".Kills") != 0) {
                             Quests.getConfig().set(p.getName() + ".Kills",
                                     Quests.getConfig().getInt(p.getName() + ".Kills") + 1);
                             Quests.saveConfig();
                         } else {
-                            Quests.getConfig().addDefault(p.getName() + ".Kills", 1);
+                            Quests.getConfig().set(p.getName() + ".Kills", 1);
                             Quests.saveConfig();
                         }
                         if (Quests.getConfig().getInt(p.getName() + ".Kills") >= Quests.getConfig().getInt(
@@ -126,21 +112,54 @@ public class QuestsListener implements Listener {
         final Player p = event.getPlayer();
         if (Quests.Creators.containsKey(p.getName())) {
             if (Quests.Creators.get(p.getName()) == "1") {
-                if (msg.length() == 1) {
+                if (Quests.wordCount(msg) == 1) {
                     Quests.QuestInfo.put(p.getName() + ".Name", msg);
-                    p.sendMessage(cct("The name of the quest is: " + Quests.QuestInfo.get(p.getName() + ".Name")));
+                    p.sendMessage(cct("The name of the quest is: "
+                            + Quests.QuestInfo.get(p.getName() + ".Name").replaceAll("_", " ")));
                     p.sendMessage(cct("Enter in the type of the quest. The types are: Location. Delivery. Mobkill. EpicBoss. More coming soon."));
                     Quests.Creators.put(p.getName(), "2");
+                    event.setCancelled(true);
+                } else {
+                    p.sendMessage(cct("You have too many words! Remember, use underspaces for spaces."));
+                    event.setCancelled(true);
                 }
             } else if (Quests.Creators.get(p.getName()) == "2") {
-                if (msg.length() == 1) {
+                if (Quests.wordCount(msg) == 1) {
                     if (msg.equalsIgnoreCase("Location") || msg.equalsIgnoreCase("Delivery")
                             || msg.equalsIgnoreCase("Mobkill") || msg.equalsIgnoreCase("EpicBoss")) {
                         Quests.QuestInfo.put(p.getName() + ".Type", msg);
                         p.sendMessage(cct("You set the quest type to: " + Quests.QuestInfo.get(p.getName() + ".Type")));
                         Quests.Creators.put(p.getName(), "3");
+                        event.setCancelled(true);
+                        if (msg.equalsIgnoreCase("Location"))
+                            p.sendMessage(cct("Go to the spot you want your final position to be set, and type Set in chat"));
                     } else {
                         p.sendMessage(cct("The quest type " + msg + " is not valid type!"));
+                        event.setCancelled(true);
+                    }
+                } else {
+                    p.sendMessage(cct("You have too many words!"));
+                    p.sendMessage(cct("Enter in the type of the quest. The types are: Location. Delivery. Mobkill. EpicBoss. More coming soon."));
+                    event.setCancelled(true);
+                }
+            } else if (Quests.Creators.get(p.getName()) == "3") {
+                if (Quests.QuestInfo.get(p.getName() + ".Type").equalsIgnoreCase("Location")) {
+                    if (msg.equalsIgnoreCase("set")) {
+                        Quests.QuestInfo.put(p.getName() + ".World", p.getLocation().getWorld().getName());
+                        Quests.QuestInfo.put(p.getName() + ".X", p.getLocation().getBlockX() + "");
+                        Quests.QuestInfo.put(p.getName() + ".Y", p.getLocation().getBlockY() + "");
+                        Quests.QuestInfo.put(p.getName() + ".Z", p.getLocation().getBlockZ() + "");
+                        Quests.Creators.put(p.getName(), "Location1");
+                        p.sendMessage(cct("You set the position to| World: "
+                                + Quests.QuestInfo.get(p.getName() + ".World") + " X: "
+                                + Quests.QuestInfo.get(p.getName() + ".X") + " Y: "
+                                + Quests.QuestInfo.get(p.getName() + ".Y") + " Z: "
+                                + Quests.QuestInfo.get(p.getName() + ".Z")));
+                        event.setCancelled(true);
+                        
+                    } else {
+                        p.sendMessage(cct("You did not type Set!"));
+                        event.setCancelled(true);
                     }
                 }
             }
@@ -148,6 +167,6 @@ public class QuestsListener implements Listener {
     }
 
     String cct(final String msg) {
-        return ChatColor.translateAlternateColorCodes('&', "&8[&bQuests&8]&7 ");
+        return ChatColor.translateAlternateColorCodes('&', "&8[&bQuests&8]&7 " + msg);
     }
 }

@@ -36,9 +36,10 @@ public class Quests extends JavaPlugin implements Listener {
         if (!file.exists()) {
             getLogger().warning("Config not found! Generating...");
         }
-        if (getServer().getPluginManager().getPlugin("EpicBossRecoded") != null) {
+        /*if (getServer().getPluginManager().getPlugin("EpicBossRecoded") != null) {
             getLogger().info("Found EpicBoss! Hooking in..");
-        }
+            getServer().getPluginManager().registerEvents(new EpicListener(this), this);
+        }*/
         if (getServer().getPluginManager().getPlugin("Citizens") == null
                 || getServer().getPluginManager().getPlugin("Citizens").isEnabled() == false) {
             getLogger().info("Citizens 2.0 not found or not enabled! Disabling...");
@@ -270,6 +271,12 @@ public class Quests extends JavaPlugin implements Listener {
                 questStarter(name, p);
             }
         }
+    }
+
+    public int wordCount(String s) {
+        if (s == null)
+            return 0;
+        return s.trim().split("\\s+").length;
     }
 
 }
