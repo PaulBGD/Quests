@@ -2,7 +2,7 @@ name: Quests
 version: 1.0.0
 description: Make quests!
 author: Ultimate 
-main: me.ultimate.Q.Quests
+main: main.java.me.ultimate.Q.Quests
 depend: [Citizens]
 softdepend: [EpicBoss]
 
