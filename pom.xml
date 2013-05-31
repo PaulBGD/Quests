@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>Quests</groupId>
   <artifactId>Quests</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>Dev</version>
   <name>Quests</name>
   <description>Making quests easy!</description>
   <build>
